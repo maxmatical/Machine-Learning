@@ -8,12 +8,16 @@ from keras.layers import LSTM, Flatten
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import MinMaxScaler, Normalizer, MaxAbsScaler
 from sklearn.metrics import accuracy_score
+from sklearn.ensemble import ExtraTreesRegressor, RandomForestRegressor, GradientBoostingRegressor
+from sklearn.linear_model import Lasso, BayesianRidge, Ridge
 from keras.callbacks import EarlyStopping
 from keras import regularizers
 from hyperas import optim
 from hyperas.distributions import choice, uniform, conditional
 from hyperopt import Trials, STATUS_OK, tpe
-
+from scipy.stats import randint as sp_randint
+from sklearn.model_selection import RandomizedSearchCV
+from numpy.random import random_sample
 
 
 # train data
@@ -72,5 +76,38 @@ model.fit(x_train_pca, y_train, validation_split=0.2, callbacks=[early_stopping]
 
 model.predict(x_train_pca)        
 
-              
+# ensemble methods
+erf = ExtraTreesRegressor()
+rf = RandomForestRegressor(n_estimators= 500)
+gb = GradientBoostingRegressor(n_estimators=500)
+#random search for optimizing hyperparams
 
+random_float = random_sample()
+param_dist = {"n_estimators": sp_randint(300,750),
+              #"max_depth": [3, None],
+              #"max_features": sp_randint(1, 20),
+              #"min_samples_split": [2, random_float],
+              #"min_samples_leaf": sp_randint(1, 20),
+              #"bootstrap": [True, False],
+              "criterion": ["mse", "mae"]}
+param_dist_gb = {"n_estimators": sp_randint(300,750),
+              "max_depth": [3, None],
+              "max_features": sp_randint(1, 20),
+              "min_samples_split": sp_randint(1, 20),
+              "min_samples_leaf": sp_randint(1, 20),
+              #"bootstrap": [True, False],
+              "criterion": ["friedman_mse", "mae"]}
+              
+n_iter_search = 20
+random_search_erf = RandomizedSearchCV(erf, param_distributions=param_dist,
+                                   n_iter=n_iter_search)
+                                   
+random_search_rf = RandomizedSearchCV(rf, param_distributions=param_dist,
+                                   n_iter=n_iter_search)
+random_search_gb = RandomizedSearchCV(gb, param_distributions=param_dist_gb,
+                                   n_iter=n_iter_search)
+
+random_search_erf.fit(x_train, np.ravel(y_train))
+print("RandomizedSearchCV took %.2f seconds for %d candidates"
+      " parameter settings." % ((time() - start), n_iter_search))
+report(random_search_erf.cv_results_)
