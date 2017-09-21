@@ -15,7 +15,7 @@ rho = 0.001 # learning rate
 for j in range(60000):
     l1 = 1/(1+np.exp(-(np.dot(X,w0))))
     l2 = 1/(1+np.exp(-(np.dot(l1,w1))))
-    l2_delta = (y - l2)*(l2*(1-l2))
+    l2_delta = (y - l2)*(l2*(1-l2))  # derivative of sigmoid function is output_layer*(1-output_layer)
     l1_delta = l2_delta.dot(w1.T) * (l1 * (1-l1))
     w1 += rho*l1.T.dot(l2_delta)
     w0 += rho*X.T.dot(l1_delta)
