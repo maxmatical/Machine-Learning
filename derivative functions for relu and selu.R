@@ -17,7 +17,7 @@ selu_deriv = function(x){
   alpha = 1.6733
   for( j in 1:dim(x)[1]){
     for( k in 1:dim(x)[2]){
-      if(x[j,k] <=0){x_deriv[j,k] = lambda}
+      if(x[j,k] >0){x_deriv[j,k] = lambda} 
       else {x_deriv[j,k] = lambda*alpha*exp(x[j,k])}
     }
   }
